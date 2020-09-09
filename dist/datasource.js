@@ -174,10 +174,10 @@ System.register(['lodash'], function (_export, _context) {
                   var columnsDict = _this.getColumnsDict(response.data.data, labelSelector);
                   results.data[0].columns = _this.getColumns(columnsDict);
 
-                  for (var i = 0; i < response.data.data.length; i++) {
+                  var _loop = function _loop(i) {
                     var row = new Array(results.data[0].columns.length).fill("");
                     var item = response.data.data[i];
-                    row[0] = [Date.parse(item['startsAt'])];
+                    row[0] = Date.parse(item['startsAt']);
 
                     var _iteratorNormalCompletion = true;
                     var _didIteratorError = false;
@@ -237,7 +237,22 @@ System.register(['lodash'], function (_export, _context) {
                       }
                     }
 
+                    if (!!query.targets[0].transform) {
+                      var rules = query.targets[0].transform.split("\n");
+                      rules.forEach(function (rulesItem) {
+                        var rule = rulesItem.split("|");
+                        if (!!rule && rule.length > 0) {
+                          row.forEach(function (s, i) {
+                            row[i] = String(s).replace(new RegExp(rule[0], rule[2]), rule[1]);
+                          });
+                        }
+                      });
+                    }
                     results.data[0].rows.push(row);
+                  };
+
+                  for (var i = 0; i < response.data.data.length; i++) {
+                    _loop(i);
                   }
                 }
                 return results;
@@ -266,7 +281,7 @@ System.register(['lodash'], function (_export, _context) {
         }, {
           key: 'getColumns',
           value: function getColumns(columnsDict) {
-            var columns = [{ text: "Time", type: "time" }];
+            var columns = [{ text: "time", type: "string" }];
             var _iteratorNormalCompletion3 = true;
             var _didIteratorError3 = false;
             var _iteratorError3 = undefined;
@@ -414,7 +429,8 @@ System.register(['lodash'], function (_export, _context) {
                 refId: target.refId,
                 hide: target.hide,
                 type: target.type || 'single',
-                legendFormat: target.legendFormat || ""
+                legendFormat: target.legendFormat || "",
+                transform: target.transform || ""
               };
             });
             return options;

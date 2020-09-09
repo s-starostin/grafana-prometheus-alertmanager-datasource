@@ -113,7 +113,7 @@ export class GenericDatasource {
           for (let i = 0; i < response.data.data.length; i++) {
             let row = new Array(results.data[0].columns.length).fill("");
             let item = response.data.data[i];
-            row[0] = [Date.parse(item['startsAt'])];
+            row[0] = Date.parse(item['startsAt']);
 
             for (let label of Object.keys(item['labels'])) {
               if(label in columnsDict) {
@@ -128,6 +128,17 @@ export class GenericDatasource {
               if(annotation in columnsDict) {
                 row[columnsDict[annotation]] = item['annotations'][annotation];
               }
+            }
+            if(!!query.targets[0].transform){
+                let rules = query.targets[0].transform.split("\n");
+                rules.forEach(function(rulesItem){
+                    let rule = rulesItem.split("|");
+                    if(!!rule && rule.length>0){
+                      row.forEach(function(s, i){
+                        row[i]=String(s).replace(new RegExp(rule[0],rule[2]),rule[1]);
+                      });
+                    }
+                });
             }
             results.data[0].rows.push(row);
           }
@@ -156,7 +167,7 @@ export class GenericDatasource {
   }
 
   getColumns(columnsDict) {
-    let columns =  [{ text: "Time", type: "time" }];
+    let columns =  [{ text: "time", type: "string" }];
     for(let column of Object.keys(columnsDict)) {
       columns.push({ text: column, type: "string" })
     }
@@ -235,7 +246,8 @@ export class GenericDatasource {
         refId: target.refId,
         hide: target.hide,
         type: target.type || 'single',
-        legendFormat: target.legendFormat || ""
+        legendFormat: target.legendFormat || "",
+        transform: target.transform || ""
       };
     });
     return options;
